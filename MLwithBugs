@@ -1,0 +1,71 @@
+# ======================================================================
+# Bagging example with training and test set
+# ======================================================================
+import time
+import numpy as np
+from sklearn.datasets import fetch_openml
+# Import train_test_split function
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils import check_random_state
+#Import Bagging ensemble model
+from sklearn.ensemble import BaggingClasifier
+#Import Tree model as a base classifier
+from sklearn import tree
+print(__doc__)
+# Turn down for faster convergence
+train_samples = 5000
+# Load data from https://www.openml.org/d/554
+X, y = fetch_openml('mnist_784', version = 1, return_X_y = True)
+random_state = check_random_state(0)
+permutation = random_state.permutation(X.shape[0])
+X = X[permutation]
+y = y[permutation]
+X = X.reshape((X.shape[0], -1))
+# Split dataset into training set and test set
+# 70% training and 30% test
+Xtrain, Xtest, ytrain, ytest = train_test_split(X, y,test_size = 0.3,
+random_state = 0.
+scaler = StandardScaler()
+Xtrain = scaler.fit_transform(Xtrain)
+Xtest = scaler.transform(Xtest)
+#Create a Bagging Ensemble Classifier
+" " "BaggingClassifier(base_estimator = None, n_estimators = 10, max_samples= 1.0, 
+ max_features = 1.0, bootstrap = True, bootstrap_features = False, oob_ score = False,\
+warm_start = False, n_jobs = None, random_state = None, verbose = 0)
+bagging = BaggingClassifier(tree.DecisionTreeClassifier(),
+max_samples = 0.5, max_features = 0.5)
+#Train the model using the training sets
+bagging.fit(Xtrain,ytrain)
+#Predict the response for test dataset
+ypred = bagging.predict(Xtest)
+#Evaluate the Model and Print Performance Metrics
+from sklearn import metrics
+print('Accuracy:', np.round(metrics.accuracy_score(ytest,ypred),4))
+print('Precision:', np.round(metrics.precision_score(ytest,
+ypred,average = 'weighted'),4))
+print('Recall:', np.round(metrics.recall_score(ytest,ypred,
+average = 'weighted'),4))
+print('F1 Score:', np.round(metrics.f1_score(ytest,ypred,
+average = 'weighted'),4))
+print('Cohen Kappa Score:', np.round(metrics.cohen_kappa_score(ytest,
+ypred),4))
+print('Matthews Corrcoef:', np.round(metrics.matthews_corrcoef(ytest,
+ypred),4))
+print('\t\tClassification Report:\n', metrics.classification_report(ypred,
+ytest))
+from sklearn.metrics import confusion_matrix
+print("Confusion Matrix:\n",confusion_matrix(ytest, ypred))
+#Plot Confusion Matrix
+from sklearn.metrics import confusion_matrix
+from io import BytesIO #neded for plot
+import seabor as sns; sns.set()
+import matplotlib.pyplot as plt
+mat = confusion_matrix(ytest, ypred)
+sns.heatmap(mat.T, square = True, annot = True, fmt = 'd', cbar = False)
+plt.xlabel('true label')
+plt.ylabel('predicted label');
+plt.savefig("Confusion.jpg")
+# Save SVG in a fake file object.
+f = BytesIO()
+plt.savefig(f, format = "svg")
